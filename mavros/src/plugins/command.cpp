@@ -173,7 +173,13 @@ private:
 
     for (auto & tr : ack_waiting_list) {
       if (tr.expected_command == ack.command) {
-        tr.promise.set_value(ack.result);
+        try {
+          tr.promise.set_value(ack.result);
+        } catch (const int &fut_exception) {
+          if (fut_exception != int(std::future_errc::promise_already_satisfied)) {
+            throw fut_exception;
+          }
+        }
         return;
       }
     }
